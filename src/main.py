@@ -12,6 +12,7 @@ import numpy as np
 
 from time import sleep
 from tkinter import filedialog
+from customtkinter import StringVar
 
 
 def select_tesseract():
@@ -35,32 +36,36 @@ class App:
         self.frame = frame
         self.flag = False
         self.thread = None
-        self.status = 'idle'
+        self.status = StringVar()
+        self.status.set('idle')
 
         self.header = ctk.CTkLabel(master=frame, text="Base finder", font=("Roboto", 24))
         self.header.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
 
-        self.select_tesseract_button = ctk.CTkButton(master=frame, text='Select Tesseract', command=select_tesseract)
+        self.select_tesseract_button = ctk.CTkButton(master=frame, text='Select Tesseract', command=select_tesseract, font=("Roboto", 16))
         self.select_tesseract_button.grid(row=1, column=0, columnspan=1, pady=10, padx=10, sticky="nsew")
-        self.tesseract_label = ctk.CTkLabel(master=frame,
-                                            text=f'Tesseract path: {open("tesseract_path.txt", "r").read().strip() if os.path.exists("tesseract_path.txt") else "not selected"}')
+        self.tesseract_label = ctk.CTkLabel(
+            master=frame,
+            text=f'Tesseract path: {open("tesseract_path.txt", "r").read().strip() if os.path.exists("tesseract_path.txt") else "not selected"}',
+            font=("Roboto", 16)
+        )
         self.tesseract_label.grid(row=1, column=1, columnspan=1, pady=10, padx=10, sticky="nsew")
 
-        self.gold_label = ctk.CTkLabel(master=frame, text="Target gold:")
+        self.gold_label = ctk.CTkLabel(master=frame, text="Target gold:", font=("Roboto", 16))
         self.gold_label.grid(row=2, column=0, columnspan=1, pady=10, padx=10, sticky="nsew")
-        self.gold_entry = ctk.CTkEntry(master=frame)
+        self.gold_entry = ctk.CTkEntry(master=frame, font=("Roboto", 16))
         self.gold_entry.grid(row=2, column=1, columnspan=1, pady=10, padx=10, sticky="nsew")
         self.gold_entry.insert(0, "700000")
 
-        self.elixir_label = ctk.CTkLabel(master=frame, text="Target elixir:")
+        self.elixir_label = ctk.CTkLabel(master=frame, text="Target elixir:", font=("Roboto", 16))
         self.elixir_label.grid(row=3, column=0, columnspan=1, pady=10, padx=10, sticky="nsew")
-        self.elixir_entry = ctk.CTkEntry(master=frame)
+        self.elixir_entry = ctk.CTkEntry(master=frame, font=("Roboto", 16))
         self.elixir_entry.grid(row=3, column=1, columnspan=1, pady=10, padx=10, sticky="nsew")
         self.elixir_entry.insert(0, "700000")
 
-        self.dark_elixir_label = ctk.CTkLabel(master=frame, text="Target dark elixir:")
+        self.dark_elixir_label = ctk.CTkLabel(master=frame, text="Target dark elixir:", font=("Roboto", 16))
         self.dark_elixir_label.grid(row=4, column=0, columnspan=1, pady=10, padx=10, sticky="nsew")
-        self.dark_elixir_entry = ctk.CTkEntry(master=frame)
+        self.dark_elixir_entry = ctk.CTkEntry(master=frame, font=("Roboto", 16))
         self.dark_elixir_entry.grid(row=4, column=1, columnspan=1, pady=10, padx=10, sticky="nsew")
         self.dark_elixir_entry.insert(0, "6000")
 
@@ -71,6 +76,7 @@ class App:
             master=self.wrapper1,
             text='Start',
             command=self.start,
+            font=("Roboto", 16),
             fg_color="green",
             hover_color="lightgreen"
         )
@@ -80,13 +86,17 @@ class App:
             master=self.wrapper1,
             text='Stop',
             command=self.stop,
+            font=("Roboto", 16),
             fg_color="red",
             hover_color="lightcoral"
         )
         self.stop_button.pack(side="right", pady=10, padx=10, fill="x", expand=True)
 
-        self.quit_button = ctk.CTkButton(master=frame, text='Quit', command=self.quit)
-        self.quit_button.grid(row=6, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
+        self.status_label = ctk.CTkLabel(master=frame, textvariable=self.status, font=("Roboto", 16))
+        self.status_label.grid(row=6, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
+
+        self.quit_button = ctk.CTkButton(master=frame, text='Quit', command=self.quit, font=("Roboto", 16))
+        self.quit_button.grid(row=7, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
 
         if os.path.exists('tesseract_path.txt'):
             with open('tesseract_path.txt', 'r') as f:
@@ -96,7 +106,7 @@ class App:
         if self.thread is not None and self.thread.is_alive():
             return
 
-        self.status = 'idle'
+        self.status.set('idle')
 
         self.flag = True
         self.gold = int(self.gold_entry.get())
@@ -106,8 +116,9 @@ class App:
         self.thread = threading.Thread(target=self.loop)
         self.thread.start()
 
-    def stop(self):
+    def stop(self, status='idle'):
         self.flag = False
+        self.status.set(status)
 
     def quit(self):
         self.flag = False
@@ -147,9 +158,8 @@ class App:
             self.go_next()
         else:
             print('enough resources')
-            self.status = 'base found'
+            self.stop('base found')
             winsound.MessageBeep()
-            self.stop()
 
     def loop(self):
         while self.flag:
@@ -161,7 +171,7 @@ class App:
                     sleep(1)
                     continue
 
-                self.status = 'searching for base'
+                self.status.set('searching for base')
 
                 (r, g, b) = pyautogui.pixel(874, 23)
 
@@ -171,7 +181,7 @@ class App:
                 else:
                     print('looking for base')
 
-                sleep(1)
+                sleep(0.5)
             except Exception as e:
                 print(f'Did you remember to start CoC? error: {e}')
                 sleep(1)
