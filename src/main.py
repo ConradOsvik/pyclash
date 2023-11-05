@@ -1,5 +1,4 @@
-import tkinter
-
+import customtkinter as ctk
 import pytesseract
 import pyautogui
 import cv2
@@ -8,20 +7,11 @@ import re
 import winsound
 import os
 
-import tkinter as tk
 import pygetwindow as gw
 import numpy as np
 
 from time import sleep
-from tkinter import filedialog, ttk
-
-
-# URL for Tesseract
-# pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR/tesseract.exe'
-
-
-def create_button(text, command, style="elder.TButton"):
-    return ttk.Button(root, text=text, style=style, command=command)
+from tkinter import filedialog
 
 
 def select_tesseract():
@@ -40,48 +30,63 @@ def extract_number(text):
 
 
 class App:
-    def __init__(self, root):
+    def __init__(self, root, frame):
         self.root = root
+        self.frame = frame
         self.flag = False
         self.thread = None
         self.status = 'idle'
 
-        self.header = tk.Label(root, text="Base finder", font=("Arial", 20))
-        self.header.grid(row=0, column=0, columnspan=2, pady=10)
+        self.header = ctk.CTkLabel(master=frame, text="Base finder", font=("Roboto", 24))
+        self.header.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
 
-        self.select_tesseract_button = create_button(text='Select Tesseract', command=select_tesseract)
-        self.select_tesseract_button.grid(row=1, column=0, columnspan=2, pady=10)
-        self.tesseract_label = tk.Label(
-            root,
-            text=f'Tesseract path: {open('tesseract_path.txt', 'r').read().strip() if os.path.exists('tesseract_path.txt') else 'not selected'}')
-        self.tesseract_label.grid(row=2, column=0)
+        self.select_tesseract_button = ctk.CTkButton(master=frame, text='Select Tesseract', command=select_tesseract)
+        self.select_tesseract_button.grid(row=1, column=0, columnspan=1, pady=10, padx=10, sticky="nsew")
+        self.tesseract_label = ctk.CTkLabel(master=frame,
+                                            text=f'Tesseract path: {open("tesseract_path.txt", "r").read().strip() if os.path.exists("tesseract_path.txt") else "not selected"}')
+        self.tesseract_label.grid(row=1, column=1, columnspan=1, pady=10, padx=10, sticky="nsew")
 
-        self.gold_label = tk.Label(root, text="Target gold:")
-        self.gold_label.grid(row=3, column=0)
-        self.gold_entry = tk.Entry(root)
-        self.gold_entry.grid(row=3, column=1)
+        self.gold_label = ctk.CTkLabel(master=frame, text="Target gold:")
+        self.gold_label.grid(row=2, column=0, columnspan=1, pady=10, padx=10, sticky="nsew")
+        self.gold_entry = ctk.CTkEntry(master=frame)
+        self.gold_entry.grid(row=2, column=1, columnspan=1, pady=10, padx=10, sticky="nsew")
         self.gold_entry.insert(0, "700000")
 
-        self.elixir_label = tk.Label(root, text="Target elixir:")
-        self.elixir_label.grid(row=4, column=0)
-        self.elixir_entry = tk.Entry(root)
-        self.elixir_entry.grid(row=4, column=1)
+        self.elixir_label = ctk.CTkLabel(master=frame, text="Target elixir:")
+        self.elixir_label.grid(row=3, column=0, columnspan=1, pady=10, padx=10, sticky="nsew")
+        self.elixir_entry = ctk.CTkEntry(master=frame)
+        self.elixir_entry.grid(row=3, column=1, columnspan=1, pady=10, padx=10, sticky="nsew")
         self.elixir_entry.insert(0, "700000")
 
-        self.dark_elixir_label = tk.Label(root, text="Target dark elixir:")
-        self.dark_elixir_label.grid(row=5, column=0)
-        self.dark_elixir_entry = tk.Entry(root)
-        self.dark_elixir_entry.grid(row=5, column=1)
+        self.dark_elixir_label = ctk.CTkLabel(master=frame, text="Target dark elixir:")
+        self.dark_elixir_label.grid(row=4, column=0, columnspan=1, pady=10, padx=10, sticky="nsew")
+        self.dark_elixir_entry = ctk.CTkEntry(master=frame)
+        self.dark_elixir_entry.grid(row=4, column=1, columnspan=1, pady=10, padx=10, sticky="nsew")
         self.dark_elixir_entry.insert(0, "6000")
 
-        self.start_button = create_button(text='Start', command=self.start, style="start.TButton")
-        self.start_button.grid(row=6, column=0, pady=10, padx=10)
+        self.wrapper1 = ctk.CTkFrame(master=frame)
+        self.wrapper1.grid(row=5, column=0, columnspan=2, sticky="ew")
 
-        self.stop_button = create_button(text='Stop', command=self.stop, style="stop.TButton")
-        self.stop_button.grid(row=6, column=1, pady=10, padx=10)
+        self.start_button = ctk.CTkButton(
+            master=self.wrapper1,
+            text='Start',
+            command=self.start,
+            fg_color="green",
+            hover_color="lightgreen"
+        )
+        self.start_button.pack(side="left", pady=10, padx=10, fill="x", expand=True)
 
-        self.quit_button = create_button(text='Quit', command=self.quit)
-        self.quit_button.grid(row=7, column=1, pady=10, padx=10)
+        self.stop_button = ctk.CTkButton(
+            master=self.wrapper1,
+            text='Stop',
+            command=self.stop,
+            fg_color="red",
+            hover_color="lightcoral"
+        )
+        self.stop_button.pack(side="right", pady=10, padx=10, fill="x", expand=True)
+
+        self.quit_button = ctk.CTkButton(master=frame, text='Quit', command=self.quit)
+        self.quit_button.grid(row=6, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
 
         if os.path.exists('tesseract_path.txt'):
             with open('tesseract_path.txt', 'r') as f:
@@ -172,46 +177,14 @@ class App:
                 sleep(1)
 
 
-root = tk.Tk()
-root.minsize(250, 280)
+ctk.set_appearance_mode("System")
+ctk.set_default_color_theme("dark-blue")
 
-# widget styles
-style = ttk.Style()
-style.theme_use('default')
-style.configure(
-    'start.TButton',
-    font=('Arial', 12),
-    padding=5,
-    background="#228B22",
-    foreground="#fff",
-    relief='flat',
-    borderwidth=0
-)
-style.map('start.TButton', background=[('active', '#28A428')])
-style.configure(
-    'stop.TButton',
-    font=('Arial', 12),
-    padding=5,
-    background="#922D50",
-    foreground="#fff",
-    relief='flat',
-    borderwidth=0)
-style.map('stop.TButton', background=[('active', '#BB3A67')])
-style.configure(
-    'elder.TButton',
-    font=('Arial', 12),
-    padding=5,
-    background='#947BD3',
-    foreground="#000",
-    relief='flat',
-    borderwidth=0
-)
-style.map(
-    'elder.TButton',
-    background=[
-        ('active', '#C1B3E6')
-    ]
-)
+root = ctk.CTk()
+root.title("Base finder")
 
-app = App(root)
+frame = ctk.CTkFrame(master=root)
+frame.pack(pady=20, padx=60, fill="both", expand=True)
+
+app = App(root, frame)
 root.mainloop()
